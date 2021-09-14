@@ -1,0 +1,28 @@
+{
+  "name": "[beta] Serve DeepSort",
+  "type": "app",
+  "categories": [
+    "tracking",
+    "video"
+  ],
+  "description": "serve and use in videos annotator",
+  "docker_image": "supervisely/supervisely:6.1.95",
+  "main_script": "supervisely/serve/src/main.py",
+  "task_location": "application_sessions",
+  "icon": "https://imgur.com/1Lcyx2p.png",
+  "icon_cover": true,
+  "isolate": true,
+  "headless": true,
+  "modal_template_state": {
+    "ssOptions": {
+      "sessionTags": [
+        "deployed_nn"
+      ],
+      "showLabel": true,
+      "size": "small"
+    }
+  },
+  "session_tags": [
+    "sly_video_tracking"
+  ]
+}

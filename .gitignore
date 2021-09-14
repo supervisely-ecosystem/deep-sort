@@ -89,3 +89,7 @@ ENV/
 .ropeproject
 
 secret_debug.env
+.DS_Store
+authorized_keys
+output
+.idea
