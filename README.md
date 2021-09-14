@@ -1,141 +1,81 @@
-# Deep SORT
+# Tracking Example (YOLOv5 + DeepSort + OpenAI's CLIP zero-shot image classifier)
 
-## Introduction
+![](./output/frames/000140.jpg)
+---
+![](./output/frames/000236.jpg)
 
-This repository contains code for *Simple Online and Realtime Tracking with a Deep Association Metric* (Deep SORT).
-We extend the original [SORT](https://github.com/abewley/sort) algorithm to
-integrate appearance information based on a deep appearance descriptor.
-See the [arXiv preprint](https://arxiv.org/abs/1703.07402) for more information.
+# Overview
 
-## Dependencies
+Object tracking involves following individual objects of interest across frames. It
+combines the output of an [object detection](https://blog.roboflow.com/object-detection) model
+with a secondary algorithm to determine which detections are identifying "the same"
+object over time.
 
-The code is compatible with Python 2.7 and 3. The following dependencies are
-needed to run the tracker:
+Previously, this required training a special classification model to differentiate
+the instances of each different class. In this repository, we have used
+OpenAI's CLIP zero-shot image classifier
+to create a universal object tracking repository. All you need is a trained object
+detection model and CLIP handles the instance identification for the object tracking
+algorithm.
 
-* NumPy
-* sklearn
-* OpenCV
 
-Additionally, feature generation requires TensorFlow (>= 1.0).
+## Training your model
 
-## Installation
 
-First, clone the repository:
+In the future we will update this repository to support using other custom models
+(like YOLOv5) as the object detector (PRs welcome).
+
+## Performing Object Tracking
+
+Clone repositories
+
 ```
-git clone https://github.com/nwojke/deep_sort.git
+git clone https://github.com/roboflow-ai/zero-shot-object-tracking
+cd zero-shot-object-tracking
+git clone https://github.com/openai/CLIP.git CLIP-repo
+cp -r ./CLIP-repo/clip ./clip # Unix based
+robocopy CLIP-repo/clip clip\ # Windows
 ```
-Then, download pre-generated detections and the CNN checkpoint file from
-[here](https://drive.google.com/open?id=18fKzfqnqhqW3s9zwsCbnVJ5XF2JFeqMp).
 
-*NOTE:* The candidate object locations of our pre-generated detections are
-taken from the following paper:
+Install requirements (python 3.7+)
+
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
 ```
-F. Yu, W. Li, Q. Li, Y. Liu, X. Shi, J. Yan. POI: Multiple Object Tracking with
-High Performance Detection and Appearance Feature. In BMTT, SenseTime Group
-Limited, 2016.
+
+Install requirements (anaconda python 3.8)
 ```
-We have replaced the appearance descriptor with a custom deep convolutional
-neural network (see below).
-
-## Running the tracker
-
-The following example starts the tracker on one of the
-[MOT16 benchmark](https://motchallenge.net/data/MOT16/)
-sequences.
-We assume resources have been extracted to the repository root directory and
-the MOT16 benchmark data is in `./MOT16`:
+conda install pytorch torchvision torchaudio -c pytorch
+conda install ftfy regex
+pip install opencv pycocotools tensorflow
 ```
-python deep_sort_app.py \
-    --sequence_dir=./MOT16/test/MOT16-06 \
-    --detection_file=./resources/detections/MOT16_POI_test/MOT16-06.npy \
-    --min_confidence=0.3 \
-    --nn_budget=100 \
-    --display=True
+
+Run
+
+```bash
+python clip_object_tracker.py --source data/video/cards.mp4 --url https://detect.roboflow.com/playing-cards-ow27d/1 --api_key ROBOFLOW_API_KEY
 ```
-Check `python deep_sort_app.py -h` for an overview of available options.
-There are also scripts in the repository to visualize results, generate videos,
-and evaluate the MOT challenge benchmark.
 
-## Generating detections
+(by default, output will be in runs/detect/exp[num])
 
-Beside the main tracking application, this repository contains a script to
-generate features for person re-identification, suitable to compare the visual
-appearance of pedestrian bounding boxes using cosine similarity.
-The following example generates these features from standard MOT challenge
-detections. Again, we assume resources have been extracted to the repository
-root directory and MOT16 data is in `./MOT16`:
+<figure class="video_container">
+  <video controls="true" allowfullscreen="true" poster="path/to/poster_image.png">
+    <source src="data/demo/cards.mp4" type="video/mp4">
+  </video>
+</figure>
+
+Help
+
+```bash
+python clip_object_tracker.py -h
 ```
-python tools/generate_detections.py \
-    --model=resources/networks/mars-small128.pb \
-    --mot_dir=./MOT16/train \
-    --output_dir=./resources/detections/MOT16_train
-```
-The model has been generated with TensorFlow 1.5. If you run into
-incompatibility, re-export the frozen inference graph to obtain a new
-`mars-small128.pb` that is compatible with your version:
-```
-python tools/freeze_model.py
-```
-The ``generate_detections.py`` stores for each sequence of the MOT16 dataset
-a separate binary file in NumPy native format. Each file contains an array of
-shape `Nx138`, where N is the number of detections in the corresponding MOT
-sequence. The first 10 columns of this array contain the raw MOT detection
-copied over from the input file. The remaining 128 columns store the appearance
-descriptor. The files generated by this command can be used as input for the
-`deep_sort_app.py`.
 
-**NOTE**: If ``python tools/generate_detections.py`` raises a TensorFlow error,
-try passing an absolute path to the ``--model`` argument. This might help in
-some cases.
+## Acknowledgements
 
-## Training the model
+Huge thanks to:
 
-To train the deep association metric model we used a novel [cosine metric learning](https://github.com/nwojke/cosine_metric_learning) approach which is provided as a separate repository.
-
-## Highlevel overview of source files
-
-In the top-level directory are executable scripts to execute, evaluate, and
-visualize the tracker. The main entry point is in `deep_sort_app.py`.
-This file runs the tracker on a MOTChallenge sequence.
-
-In package `deep_sort` is the main tracking code:
-
-* `detection.py`: Detection base class.
-* `kalman_filter.py`: A Kalman filter implementation and concrete
-   parametrization for image space filtering.
-* `linear_assignment.py`: This module contains code for min cost matching and
-   the matching cascade.
-* `iou_matching.py`: This module contains the IOU matching metric.
-* `nn_matching.py`: A module for a nearest neighbor matching metric.
-* `track.py`: The track class contains single-target track data such as Kalman
-  state, number of hits, misses, hit streak, associated feature vectors, etc.
-* `tracker.py`: This is the multi-target tracker class.
-
-The `deep_sort_app.py` expects detections in a custom format, stored in .npy
-files. These can be computed from MOTChallenge detections using
-`generate_detections.py`. We also provide
-[pre-generated detections](https://drive.google.com/open?id=1VVqtL0klSUvLnmBKS89il1EKC3IxUBVK).
-
-## Citing DeepSORT
-
-If you find this repo useful in your research, please consider citing the following papers:
-
-    @inproceedings{Wojke2017simple,
-      title={Simple Online and Realtime Tracking with a Deep Association Metric},
-      author={Wojke, Nicolai and Bewley, Alex and Paulus, Dietrich},
-      booktitle={2017 IEEE International Conference on Image Processing (ICIP)},
-      year={2017},
-      pages={3645--3649},
-      organization={IEEE},
-      doi={10.1109/ICIP.2017.8296962}
-    }
-
-    @inproceedings{Wojke2018deep,
-      title={Deep Cosine Metric Learning for Person Re-identification},
-      author={Wojke, Nicolai and Bewley, Alex},
-      booktitle={2018 IEEE Winter Conference on Applications of Computer Vision (WACV)},
-      year={2018},
-      pages={748--756},
-      organization={IEEE},
-      doi={10.1109/WACV.2018.00087}
-    }
+- [yolov4-deepsort by theAIGuysCode](https://github.com/theAIGuysCode/yolov4-deepsort)
+- [yolov5 by ultralytics](https://github.com/ultralytics/yolov5)
+- [Deep SORT Repository by nwojke](https://github.com/nwojke/deep_sort)
+- [OpenAI for being awesome](https://openai.com/blog/clip/)
