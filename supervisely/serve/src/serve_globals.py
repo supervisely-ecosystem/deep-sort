@@ -11,8 +11,6 @@ my_app = sly.AppService()
 api = my_app.public_api
 task_id = my_app.task_id
 
-my_app.data_dir
-
 logger = sly.logger
 
 sly.fs.clean_dir(my_app.data_dir)  # @TODO: for debug
@@ -21,18 +19,17 @@ root_source_path = str(pathlib.Path(sys.argv[0]).parents[3])
 sly.logger.info(f"Root source directory: {root_source_path}")
 sys.path.append(root_source_path)
 
-train_source_path = os.path.join(root_source_path, "supervisely/train/src")
-sly.logger.info(f"Train source directory: {train_source_path}")
-sys.path.append(train_source_path)
-
-serve_source_path = os.path.join(root_source_path, "supervisely/serve/src")
+serve_source_path = os.path.join(root_source_path, "supervisely/serve/")
 sly.logger.info(f"Serve source directory: {serve_source_path}")
 sys.path.append(serve_source_path)
 
+UI_source_path = os.path.join(root_source_path, "supervisely/serve/src/ui")
+sly.logger.info(f"UI source directory: {serve_source_path}")
+sys.path.append(serve_source_path)
 
+owner_id = int(os.environ['context.userId'])
 team_id = int(os.environ['context.teamId'])
 workspace_id = int(os.environ['context.workspaceId'])
-device = os.environ['modal.state.device']
 
 
 def get_files_paths(src_dir, extensions):

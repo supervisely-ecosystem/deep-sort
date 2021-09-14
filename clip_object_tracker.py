@@ -20,7 +20,7 @@ from deep_sort.tracker import Tracker
 from tools import generate_clip_detections as gdet
 
 # sly imports
-import sly_globals as g
+import serve_globals as g
 from tqdm import tqdm
 
 

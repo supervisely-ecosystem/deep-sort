@@ -1,0 +1,52 @@
+<div class="fflex" style="align-items: stretch;">
+
+    <sly-card title="Set tracking parameters"
+              subtitle="customize parameters for your task"
+              class="mr15 "
+              :class="{'custom-full-height': !state.collapsed3}"
+              :options="{collapsable: true}"
+              :collapsed.sync="state.collapsed3"
+              :style="[!state.collapsed3 ? {minWidth: '310px', maxWidth: '310px'} : {width: '100%', margin: 0}]"
+              :disabled="{disabled: state.disabled3, message: 'complete stage 2'}"
+              ref="step3">
+        <div class="fflex"
+             style="flex-direction: column; justify-content: space-between; align-items: flex-start; height: 100%;">
+            <div>
+                <sly-field title="Output project name"
+                           description="folder name to save visualization result">
+                    <el-input placeholder="visualization_0"
+                              v-model="state.expId"
+                              :disabled="data.done3"></el-input>
+                </sly-field>
+
+
+                <sly-field title="Confidence threshold"
+                           description="to filter predictions">
+                    <div class="fflex">
+                        <!--            <span class="mr5">Evaluate validation set every </span>-->
+                        <el-input-number v-model="state.confThres" :min="0" :max="1" :step="0.1"
+                                         :disabled="data.done3"></el-input-number>
+                    </div>
+                </sly-field>
+            </div>
+
+            <div>
+                <el-button type="primary" class="regular mt10"
+                           @click="command('apply_parameters')"
+                           v-if="!data.done3">
+                    Apply settings
+                </el-button>
+                <div v-if="data.done3">
+                    <i class="zmdi zmdi-check-circle mr5 mt5 mb5" style="color: #13ce66"></i>
+                    <span style="color: #5a6772;">Parameters defined</span>
+                </div>
+                <el-button type="warning" class="regular mt10" :plain="true"
+                           @click="state.restartFrom = 3;"
+                           v-if="data.done3"
+                           :disabled="state.annotatingStarted">
+                    <i class="zmdi zmdi-rotate-left mr5"></i> reselect
+                </el-button>
+            </div>
+        </div>
+    </sly-card>
+</div>
