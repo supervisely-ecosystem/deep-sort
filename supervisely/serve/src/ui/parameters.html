@@ -2,29 +2,41 @@
 
     <sly-card title="Set tracking parameters"
               subtitle="customize parameters for your task"
-              class="mr15 "
-              :class="{'custom-full-height': !state.collapsed3}"
+              class="mr15"
               :options="{collapsable: true}"
               :collapsed.sync="state.collapsed3"
-              :style="[!state.collapsed3 ? {minWidth: '310px', maxWidth: '310px'} : {width: '100%', margin: 0}]"
               :disabled="{disabled: state.disabled3, message: 'complete stage 2'}"
+              style="width: 100%"
               ref="step3">
-        <div class="fflex"
+        <div class="fflex" v-if="!data.done3"
              style="flex-direction: column; justify-content: space-between; align-items: flex-start; height: 100%;">
             <div>
-                <sly-field title="Output project name"
-                           description="folder name to save visualization result">
-                    <el-input placeholder="visualization_0"
-                              v-model="state.expId"
-                              :disabled="data.done3"></el-input>
+
+                <sly-field title="Choose Device" description="CPU or GPU index (i.e. 0, 1, 2 or 3)">
+                    <el-select v-model="state.device">
+                        <el-option-group key="GPU" label="GPU">
+                            <el-option key="0" label="0" value="cuda:0"/>
+                            <el-option key="1" label="1" value="cuda:1"/>
+                            <el-option key="2" label="2" value="cuda:2"/>
+                            <el-option key="3" label="3" value="cuda:3"/>
+                        </el-option-group>
+                        <el-option-group key="CPU" label="CPU">
+                            <el-option key="cpu" label="cpu" value="cpu"/>
+                        </el-option-group>
+                    </el-select>
                 </sly-field>
-
-
-                <sly-field title="Confidence threshold"
+                <sly-field title="Detector confidence threshold"
                            description="to filter predictions">
                     <div class="fflex">
                         <!--            <span class="mr5">Evaluate validation set every </span>-->
-                        <el-input-number v-model="state.confThres" :min="0" :max="1" :step="0.1"
+                        <el-input-number v-model="state.detectorThres" :min="0" :max="1" :step="0.1"
+                                         :disabled="data.done3"></el-input-number>
+                    </div>
+                </sly-field>
+                <sly-field title="Cosine similarity threshold"
+                           description="Gating threshold for cosine similarity (object appearance).">
+                    <div class="fflex">
+                        <el-input-number v-model="state.cosSimilarity" :min="0" :max="1" :step="0.1"
                                          :disabled="data.done3"></el-input-number>
                     </div>
                 </sly-field>
@@ -34,19 +46,31 @@
                 <el-button type="primary" class="regular mt10"
                            @click="command('apply_parameters')"
                            v-if="!data.done3">
-                    Apply settings
+                    Serve Deep Sort
                 </el-button>
-                <div v-if="data.done3">
-                    <i class="zmdi zmdi-check-circle mr5 mt5 mb5" style="color: #13ce66"></i>
-                    <span style="color: #5a6772;">Parameters defined</span>
+
+            </div>
+        </div>
+        <div v-if="data.done3">
+                <sly-field title="INFO: successfully served Deep Sort"
+                           description="go to Videos Annotator, select APP and press the Track button"
+                           style="padding-top: 4px; padding-bottom: 6px">
+
+                    <sly-icon slot="icon" :options="{ color: '#13ce66', bgColor: '#e1f7eb', rounded: false }">
+                        <i class="zmdi zmdi-circle"></i>
+                    </sly-icon>
+                </sly-field>
+                <div v-for="v,k in data.deepSortInfo" class="mb10" style="word-break: break-all;">
+                    <div style="margin-bottom: 4px">
+                        <b>{{k}}</b>: <span>{{v}}</span>
+                    </div>
                 </div>
+
                 <el-button type="warning" class="regular mt10" :plain="true"
                            @click="state.restartFrom = 3;"
-                           v-if="data.done3"
-                           :disabled="state.annotatingStarted">
+                           :disabled="state.trackingStarted">
                     <i class="zmdi zmdi-rotate-left mr5"></i> reselect
                 </el-button>
             </div>
-        </div>
     </sly-card>
 </div>

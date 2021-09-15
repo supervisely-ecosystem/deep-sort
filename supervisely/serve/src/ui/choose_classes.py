@@ -12,13 +12,13 @@ def init(data, state):
 
     state["selectedClasses"] = []
 
-    data["done3"] = False
-    state["collapsed3"] = True
-    state["disabled3"] = True
+    data["done2"] = False
+    state["collapsed2"] = True
+    state["disabled2"] = True
 
 
 def restart(data, state):
-    data['done3'] = False
+    data['done2'] = False
 
 
 def generate_rows():
@@ -55,18 +55,5 @@ def choose_videos(api: sly.api, task_id, context, state, app_logger):
     if selected_count == 0:
         raise ValueError('No classes selected. Please select one class at least .')
 
-
-
-    # g.finish_step(3)
-    step_num = 3 # temp solution
-    next_step = 5 # temp solution
-
-    fields = [ # temp solution
-        {"field": f"data.done{step_num}", "payload": True},
-        {"field": f"state.collapsed{next_step}", "payload": False},
-        {"field": f"state.disabled{next_step}", "payload": False},
-        {"field": f"state.activeStep", "payload": 4},
-    ]
-    api.app.set_field(task_id, "data.scrollIntoView", f"step{4}")
-    api.app.set_fields(task_id, fields)
+    g.finish_step(2)
 

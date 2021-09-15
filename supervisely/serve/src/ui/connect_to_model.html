@@ -51,7 +51,7 @@
         <el-button type="warning" class="regular mt10" :plain="true"
                    @click="state.restartFrom = 1;"
                    v-if="data.connected === true"
-                   :disabled="state.annotatingStarted">
+                   :disabled="state.trackingStarted">
             <i class="zmdi zmdi-rotate-left mr5"></i> reselect
         </el-button>
     </div>

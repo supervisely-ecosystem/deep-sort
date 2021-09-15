@@ -4,23 +4,27 @@ import serve_globals as g
 
 import random
 
+import argparse
+
 
 def init(data, state):
     # system
 
-    state["confThres"] = 0.4
-    state["previewLoading"] = False
+    state["device"] = 'cuda:0'
+    state["detectorThres"] = 0.6
+    state["cosSimilarity"] = 0.6
+
+    state["trackingStarted"] = False
+
 
     # stepper
-    data["videoUrl"] = None
-
-    state["collapsed5"] = True
-    state["disabled5"] = True
-    data["done5"] = False
+    state["collapsed3"] = True
+    state["disabled3"] = True
+    data["done3"] = False
 
 
 def restart(data, state):
-    data["done5"] = False
+    data["done3"] = False
 
 
 def get_video_for_preview():
@@ -44,38 +48,48 @@ def get_video_for_preview():
     return video_info['videoId'], (start_frame, end_frame)
 
 
+def init_opt(state):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--device', type=str,
+                        default=state['device'], help='device to process')
+    parser.add_argument('--detection_threshold', type=float,
+                        default=state['detectorThres'],
+                        help='threshold for detector model')
+    parser.add_argument('--nms_max_overlap', type=float,
+                        default=1.0,
+                        help='Non-maxima suppression threshold: Maximum detection overlap.')
+    parser.add_argument('--max_cosine_distance', type=float,
+                        default=state['cosSimilarity'],
+                        help='Gating threshold for cosine distance metric (object appearance).')
+    parser.add_argument('--nn_budget', type=int,
+                        default=None,
+                        help='Maximum size of the appearance descriptors allery. If None, no budget is enforced.')
+
+    parser.add_argument('--thickness', type=int,
+                        default=1, help='Thickness of the bounding box strokes')
+
+    parser.add_argument('--info', action='store_true',
+                        help='Print debugging info.')
+    g.opt = parser.parse_args()
+
+
+def upload_deep_sort_info(state):
+    deep_sort_info = {}
+
+    deep_sort_info["device"] = state["device"]
+    deep_sort_info["detectorThres"] = state["detectorThres"]
+    deep_sort_info["cosSimilarity"] = state["cosSimilarity"]
+
+    g.api.app.set_field(g.task_id, 'data.deepSortInfo', deep_sort_info)
+
+
 @g.my_app.callback("apply_parameters")
 @sly.timeit
 @g.my_app.ignore_errors_and_show_dialog_window()
 def apply_parameters(api: sly.Api, task_id, context, state, app_logger):
-    g.finish_step(5)
 
+    init_opt(state)
+    upload_deep_sort_info(state)
 
-@g.my_app.callback("generate_annotation_example")
-@sly.timeit
-@g.my_app.ignore_errors_and_show_dialog_window()
-def generate_annotation_example(api: sly.Api, task_id, context, state, app_logger):
-    try:
-        fields = [
-            {"field": "data.videoUrl", "payload": None}
-        ]
-        api.task.set_fields(task_id, fields)
+    g.finish_step(3)
 
-        video_id, frames_range = get_video_for_preview()
-        result = g.api.task.send_request(state['sessionId'], "inference_video_id",
-                                         data={'videoId': video_id,
-                                               'framesRange': frames_range,
-                                               'confThres': state['confThres'],
-                                               'isPreview': True})
-
-        fields = [
-            {"field": "data.videoUrl", "payload": result['preview_url']},
-            {"field": "state.previewLoading", "payload": False},
-        ]
-        api.task.set_fields(task_id, fields)
-    except Exception as ex:
-        fields = [
-            {"field": "state.previewLoading", "payload": False},
-        ]
-        api.task.set_fields(task_id, fields)
-        raise ex

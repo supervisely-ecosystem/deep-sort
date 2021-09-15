@@ -40,6 +40,14 @@ def main():
     g.my_app.run(data=data, state=state)
 
 
+# @TODO: test multiclass
+# @TODO: check GPU availability
+# @TODO: ping Detector Model
+# @TODO: notify bars customize
+# @TODO: approve launch format
+# @TODO: add confidence tags
+
+
 if __name__ == "__main__":
     sly.main_wrapper("main", main)
 

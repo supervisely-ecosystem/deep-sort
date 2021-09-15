@@ -1,4 +1,4 @@
-import argparse
+
 import json
 
 import sly_functions
@@ -105,27 +105,9 @@ class TrainedTrackerContainer:
                 json.dump(annotation, file)
 
     def init_opts(self):
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--device', type=str,
-                            default=g.device, help='device to process')
+        opt = g.opt
 
-        parser.add_argument('--source_path', type=str,
-                            default=self.data_path, help='source_path')
-
-        parser.add_argument('--nms_max_overlap', type=float, default=1.0,
-                            help='Non-maxima suppression threshold: Maximum detection overlap.')
-        parser.add_argument('--max_cosine_distance', type=float, default=0.4,
-                            help='Gating threshold for cosine distance metric (object appearance).')
-        parser.add_argument('--nn_budget', type=int, default=None,
-                            help='Maximum size of the appearance descriptors allery. If None, no budget is enforced.')
-
-        parser.add_argument('--thickness', type=int,
-                            default=1, help='Thickness of the bounding box strokes')
-
-        parser.add_argument('--info', action='store_true',
-                            help='Print debugging info.')
-        opt = parser.parse_args()
-
+        opt.source_path = self.data_path
         opt.frame_indexes = self.frames_indexes
 
         return opt

@@ -18,19 +18,19 @@ def init(data, state):
         "size": "small"
     }
 
-    data["done2"] = False
+    data["done1"] = False
 
-    state["collapsed2"] = True
-    state["disabled2"] = True
+    state["collapsed1"] = False
+    state["disabled1"] = False
 
 
 def restart(data, state):
-    data['done2'] = False
+    data['done1'] = False
 
 
 def get_model_info(session_id):
     try:
-        meta_json = g.api.task.send_request(session_id, "get_model_meta", data={}, timeout=3)
+        meta_json = g.api.task.send_request(session_id, "get_output_classes_and_tags", data={}, timeout=3)
         g.model_info = g.api.task.send_request(session_id, "get_session_info", data={}, timeout=3)
         g.model_meta = sly.ProjectMeta.from_json(meta_json)
     except Exception as ex:
@@ -56,7 +56,7 @@ def connect(api: sly.Api, task_id, context, state, app_logger):
         classes_rows = choose_classes.generate_rows()
         choose_classes.fill_table(classes_rows)
         show_model_info()
-        g.finish_step(2)
+        g.finish_step(1)
     else:
         fields = [
             {"field": "state.connectionLoading", "payload": False},
