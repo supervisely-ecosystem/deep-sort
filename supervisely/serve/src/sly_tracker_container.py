@@ -33,8 +33,8 @@ class TrainedTrackerContainer:
         self.direction = context["direction"]
 
         self.object_ids = context['objectIds']
-        # self.class_name = g.api.video.object.get_info_by_id(self.object_ids[0].name)
-        self.class_name = 'lemon'
+
+        self.class_names = context['selectedClasses']
 
         self.geometries = []
         self.frames_indexes = []
@@ -113,24 +113,25 @@ class TrainedTrackerContainer:
         return opt
 
     def init_annotation_keeper(self, ann_data):
-        class_name = self.class_name
-        objects_count = sly_functions.get_objects_count(ann_data)
+        class_names_for_each_object = sly_functions.get_class_names_for_each_object(ann_data)
         video_shape = sly_functions.get_video_shape(self.frames_path)
         video_frames_count = self.video_info.frames_count
 
         ann_keeper = serve_ann_keeper.AnnotationKeeper(video_shape=(video_shape[1], video_shape[0]),
-                                                       objects_count=objects_count,
-                                                       class_name=class_name,
+                                                       class_names_for_each_object=class_names_for_each_object,
                                                        video_frames_count=video_frames_count)
 
         return ann_keeper
 
     def track(self):
         opt = self.init_opts()
-        ann_data = sly_tracker.track(opt)
 
-        ann_keeper = self.init_annotation_keeper(ann_data)
-        ann_keeper.add_figures_by_frames(ann_data)
+        tracker_annotations = sly_tracker.track(opt)
+
+        tracker_annotations = sly_functions.clear_empty_ids(tracker_annotations)
+
+        ann_keeper = self.init_annotation_keeper(tracker_annotations)
+        ann_keeper.add_figures_by_frames(tracker_annotations)
 
         return ann_keeper.get_annotations()
 

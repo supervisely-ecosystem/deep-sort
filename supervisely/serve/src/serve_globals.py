@@ -36,6 +36,8 @@ model_meta = None
 
 opt = None
 
+selected_classes = []
+
 
 def get_files_paths(src_dir, extensions):
     files_paths = []

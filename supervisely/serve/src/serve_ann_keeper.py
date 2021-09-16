@@ -8,12 +8,12 @@ import sly_functions
 
 
 class AnnotationKeeper:
-    def __init__(self, video_shape, objects_count, class_name, video_frames_count):
+    def __init__(self, video_shape, class_names_for_each_object, video_frames_count):
         self.video_frames_count = video_frames_count
 
         self.video_shape = video_shape
-        self.objects_count = objects_count
-        self.class_name = class_name
+
+        self.class_names = class_names_for_each_object
 
         self.project = None
         self.dataset = None
@@ -69,8 +69,8 @@ class AnnotationKeeper:
         return unique_objects
 
     def get_sly_objects(self):
-        for obj in range(self.objects_count):
-            self.sly_objects_list.append(sly.ObjClass(self.class_name, sly.Rectangle))
+        for class_name in self.class_names:
+            self.sly_objects_list.append(sly.ObjClass(class_name, sly.Rectangle))
 
     def get_video_objects_list(self):
         for sly_object in self.sly_objects_list:

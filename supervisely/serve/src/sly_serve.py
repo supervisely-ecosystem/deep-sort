@@ -13,16 +13,22 @@ from sly_tracker_container import TrainedTrackerContainer
 @sly.timeit
 # @sly_functions.send_error_data
 def track_in_video_annotation_tool(api: sly.Api, task_id, context, state, app_logger):
-    detector_session_id = 9189
+    detector_session_id = g.model_info['session_id']
+
+    context['selectedClasses'] = g.selected_classes
+    context['detectorThreshold'] = g.opt.detection_threshold
+
     annotations = sly_functions.get_annotations_from_detector(detector_session_id, context)
 
     tracker_container = TrainedTrackerContainer(context)
     tracker_container.download_frames()
     tracker_container.dump_annotations(annotations)
 
-    annotations = tracker_container.track()
+    tracker_annotations = tracker_container.track()
 
-    g.api.video.annotation.append(tracker_container.video_id, annotations)
+    sly_functions.update_project_meta(tracker_container.video_id, g.selected_classes)
+
+    g.api.video.annotation.append(tracker_container.video_id, tracker_annotations)
     tracker_container.update_progress(len(tracker_container.frames_indexes) - 1)
 
 

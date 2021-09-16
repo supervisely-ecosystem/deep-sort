@@ -16,7 +16,6 @@ def init(data, state):
 
     state["trackingStarted"] = False
 
-
     # stepper
     state["collapsed3"] = True
     state["disabled3"] = True
@@ -50,6 +49,7 @@ def get_video_for_preview():
 
 def init_opt(state):
     parser = argparse.ArgumentParser()
+
     parser.add_argument('--device', type=str,
                         default=state['device'], help='device to process')
     parser.add_argument('--detection_threshold', type=float,
@@ -70,7 +70,9 @@ def init_opt(state):
 
     parser.add_argument('--info', action='store_true',
                         help='Print debugging info.')
+
     g.opt = parser.parse_args()
+
 
 
 def upload_deep_sort_info(state):

@@ -37,6 +37,7 @@ def correct_figure(img_size, figure):  # img_size — height, width tuple
 def update_track_data(tracks_data, tracks, frame_index, img_size):
     coordinates_data = []
     track_id_data = []
+    labels_data = []
 
     for curr_track in tracks:
         if not curr_track.is_confirmed() or curr_track.time_since_update > 1:
@@ -55,9 +56,11 @@ def update_track_data(tracks_data, tracks, frame_index, img_size):
         if tested_rectangle:
             coordinates_data.append(tested_rectangle)
             track_id_data.append(track_id)
+            labels_data.append(curr_track.class_num)
 
     tracks_data[frame_index] = {'coords': coordinates_data,
-                                'ids': track_id_data}
+                                'ids': track_id_data,
+                                'labels': labels_data}
 
     return tracks_data
 

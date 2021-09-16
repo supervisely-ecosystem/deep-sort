@@ -55,5 +55,6 @@ def choose_videos(api: sly.api, task_id, context, state, app_logger):
     if selected_count == 0:
         raise ValueError('No classes selected. Please select one class at least .')
 
+    g.selected_classes = state['selectedClasses']
     g.finish_step(2)
 
