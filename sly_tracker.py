@@ -91,7 +91,7 @@ def track(opt):
 
     frame_index = 0
     for image_path, annotation_path in tqdm(zip(image_paths, annotations_path), desc='deepsort tracking',
-                                            total=len(image_paths)):  # @TODO: integrate our ann
+                                            total=len(image_paths)):
 
         im0 = cv2.imread(image_path)
 

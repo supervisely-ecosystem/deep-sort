@@ -15,10 +15,12 @@ from sly_tracker_container import TrainedTrackerContainer
 def track_in_video_annotation_tool(api: sly.Api, task_id, context, state, app_logger):
     detector_session_id = g.model_info['session_id']
 
-    context['selectedClasses'] = g.selected_classes
-    context['detectorThreshold'] = g.opt.detection_threshold
+    detector_settings = {'conf_thres': g.opt.detection_threshold}
+
+    context['settings'] = detector_settings
 
     annotations = sly_functions.get_annotations_from_detector(detector_session_id, context)
+    annotations = sly_functions.filter_annotations_by_classes(annotations, g.selected_classes)
 
     tracker_container = TrainedTrackerContainer(context)
     tracker_container.download_frames()
@@ -46,13 +48,8 @@ def main():
     g.my_app.run(data=data, state=state)
 
 
-# @TODO: test multiclass
-# @TODO: check GPU availability
 # @TODO: ping Detector Model
-# @TODO: notify bars customize
-# @TODO: approve launch format
-# @TODO: add confidence tags
-
+# @TODO: batch size detection
 
 if __name__ == "__main__":
     sly.main_wrapper("main", main)

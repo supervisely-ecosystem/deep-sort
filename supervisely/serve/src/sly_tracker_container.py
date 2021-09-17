@@ -15,8 +15,11 @@ from functools import partial
 
 from tqdm import tqdm
 
+
 class TrainedTrackerContainer:
-    def __init__(self, context):
+    def __init__(self, context, api):
+        self.api = api
+
         self.frame_index = context["frameIndex"]
         self.frames_count = context["frames"]
 
@@ -27,14 +30,12 @@ class TrainedTrackerContainer:
 
         self.track_id = context["trackId"]
         self.video_id = context["videoId"]
-        self.video_info = g.api.video.get_info_by_id(self.video_id)
+        self.video_info = self.api.video.get_info_by_id(self.video_id)
         self.video_fps = round(1 / self.video_info.frames_to_timecodes[1])
 
         self.direction = context["direction"]
 
         self.object_ids = context['objectIds']
-
-        self.class_names = context['selectedClasses']
 
         self.geometries = []
         self.frames_indexes = []
@@ -44,7 +45,7 @@ class TrainedTrackerContainer:
         self.progress_notify_interval = 1 if round(len(self.frames_indexes) * 0.03) == 0 else \
             round(len(self.frames_indexes) * 0.03)
 
-        self.video_annotator_progress = partial(g.api.video.notify_progress,
+        self.video_annotator_progress = partial(self.api.video.notify_progress,
                                                 track_id=self.track_id,
                                                 video_id=self.video_id,
                                                 frame_start=self.frames_indexes[0],
@@ -57,9 +58,13 @@ class TrainedTrackerContainer:
         total_frames = self.video_info.frames_count
         cur_index = self.frame_index
 
-        while 0 <= cur_index < total_frames and len(self.frames_indexes) < self.frames_count + 1:
-            self.frames_indexes.append(cur_index)
-            cur_index += (1 if self.direction == 'forward' else -1)
+        if self.direction == 'forward':
+            end_point = cur_index + self.frames_count if cur_index + self.frames_count < total_frames else total_frames
+            self.frames_indexes = [curr_frame_index for curr_frame_index in range(cur_index, end_point, 1)]
+        else:
+            end_point = cur_index - self.frames_count if cur_index - self.frames_count > -1 else -1
+            self.frames_indexes = [curr_frame_index for curr_frame_index in range(cur_index, end_point, -1)]
+            self.frames_indexes = []
 
     def update_progress(self, enumerate_frame_index):
         frame_index = self.frames_indexes[enumerate_frame_index]
@@ -82,10 +87,10 @@ class TrainedTrackerContainer:
 
         for index, frame_index in tqdm(enumerate(self.frames_indexes), desc='download frames',
                                        total=len(self.frames_indexes)):
-            img_bgr = sly_functions.get_frame_np(g.api, self.video_id, frame_index)
+            img_bgr = sly_functions.get_frame_np(self.api, self.video_id, frame_index)
             cv2.imwrite(f"{self.frames_path}/frame{index:06d}.jpg", img_bgr)  # save frame as JPEG file
 
-        video_info = g.api.video.get_info_by_id(self.video_id)
+        video_info = self.api.video.get_info_by_id(self.video_id)
         video_fps = round(1 / video_info.frames_to_timecodes[1])
 
         video_data = {'id': self.video_id, 'path': self.frames_path,

@@ -105,10 +105,23 @@ def update_project_meta(video_id, selected_classes):
 
     tracker_project_meta = generate_project_meta_by_classes(selected_classes)
 
-    project_meta.merge(tracker_project_meta)
+    project_meta = project_meta.merge(tracker_project_meta)
 
     g.api.project.update_meta(project_id, project_meta.to_json())
 
 
+def filter_annotations_by_classes(annotations, selected_classes):
+    # filtered_annotations = {}
+    for frame_name, data in annotations.items():
+        filtered_objects_list = []
 
+        frame_objects = data['objects']
+
+        for frame_object in frame_objects:
+            if frame_object['classTitle'] in selected_classes:
+                filtered_objects_list.append(frame_object)
+
+        data['objects'] = filtered_objects_list
+
+    return annotations
 
